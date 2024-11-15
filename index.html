@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Awareness Quiz</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .question {
+            margin: 20px 0;
+        }
+        .question-info {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin: 10px 0;
+        }
+        .options input {
+            margin-right: 10px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .result {
+            display: none;
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .summary {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        #exitMessage {
+            display: none; /* Initially hide the exit message */
+            text-align: center;
+            font-size: 20px;
+            color: green;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Phishing Awareness Quiz</h1>
+        <input type="text" id="username" placeholder="Enter your name" required />
+        <div id="quiz"></div>
+        <div class="question-info" id="questionInfo"></div>
+        <button class="btn" id="nextBtn">Next Question</button>
+        <button class="btn" id="submitBtn" style="display:none;">Submit Quiz</button>
+        <button class="btn" id="exitBtn" style="display:none;">Exit Quiz</button>
+        <div class="result" id="result"></div>
+        <div class="summary" id="summary" style="display:none;"></div>
+        <div id="exitMessage"></div> <!-- This div will hold the exit message -->
+    </div>
+
+    <script>
+        const questions = [
+    { question: "1. What is phishing?", options: ["A form of fishing", "A cyber attack to steal information", "A way to secure data"], correct: 1 },
+    { question: "2. Which method is commonly used in phishing attacks?", options: ["Social Engineering", "Physical Hacking", "Malware Execution"], correct: 0 },
+    { question: "3. What type of data do phishing attacks commonly target?", options: ["Usernames and passwords", "Photos", "Game scores"], correct: 0 },
+    { question: "4. What does a phishing attacker often use to create urgency?", options: ["Technical terms", "Immediate action requests", "Colorful designs"], correct: 1 },
+    { question: "5. What is Deceptive Phishing?", options: ["Fake emails or websites", "Physical tricks", "Spam filtering"], correct: 0 },
+    { question: "6. What is Spear Phishing?", options: ["An attack on everyone", "An attack targeted at specific people", "Phishing over the phone"], correct: 1 },
+    { question: "7. What is Clone Phishing?", options: ["Creating a duplicate of a legitimate email", "Phishing through social media", "An attack on executives"], correct: 0 },
+    { question: "8. Who are the main targets in Whaling attacks?", options: ["Students", "High-level executives", "Home users"], correct: 1 },
+    { question: "9. What type of phishing attack is common on social media?", options: ["Phone phishing", "Giveaway scams", "In-person scams"], correct: 1 },
+    { question: "10. Which of these methods helps detect phishing attacks?", options: ["Use of custom DNS services", "Ignoring all emails", "Only using social media"], correct: 0 },
+    { question: "11. How can browsers help in detecting phishing?", options: ["Highlighting suspicious links", "Blocking all websites", "Disabling search engines"], correct: 0 },
+    { question: "12. How can you verify the safety of a link?", options: ["Click on it directly", "Use URL scanning tools", "Ask a friend"], correct: 1 },
+    { question: "13. What indicates a secure website?", options: ["An 'http' URL", "An 'https' URL", "A blue background"], correct: 1 },
+    { question: "14. What does Multi-Factor Authentication (MFA) prevent?", options: ["Unauthorized access", "Spam emails", "Network slowdowns"], correct: 0 },
+    { question: "15. What should you avoid doing in suspicious emails?", options: ["Clicking on links", "Ignoring grammar", "Reading the message"], correct: 0 },
+    { question: "16. Why should organizations implement security policies?", options: ["For design consistency", "To handle phishing risks", "To create email accounts"], correct: 1 },
+    { question: "17. What is a common tactic in phishing emails?", options: ["Incorrect grammar", "Fancy images", "Unknown locations"], correct: 0 },
+    { question: "18. What feature in emails helps identify phishing?", options: ["Sender verification", "Attachment formatting", "Fancy fonts"], correct: 0 },
+    { question: "19. What is 'Baiting' in phishing?", options: ["Leaving infected devices", "Sending coded emails", "Publishing social media ads"], correct: 0 },
+    { question: "20. What is Typosquatting?", options: ["Creating fake URLs with typos", "Correcting typos in emails", "Typing errors in social media"], correct: 0 }
+];
+
+
+        let currentQuestion = 0;
+        let score = 0;
+        const userAnswers = [];
+
+        const usernameInput = document.getElementById('username');
+        const quizContainer = document.getElementById('quiz');
+        const nextBtn = document.getElementById('nextBtn');
+        const exitBtn = document.getElementById('exitBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultContainer = document.getElementById('result');
+        const summaryContainer = document.getElementById('summary');
+        const questionInfo = document.getElementById('questionInfo');
+        const exitMessage = document.getElementById('exitMessage');
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            quizContainer.innerHTML = `
+                <div class="question">${question.question}</div>
+                <ul class="options">
+                    ${question.options.map((option, index) =>
+                        `<li><label><input type="radio" name="option" value="${index}"> ${option}</label></li>`
+                    ).join('')}
+                </ul>
+            `;
+            questionInfo.innerHTML = `Question ${currentQuestion + 1} of ${questions.length}`;
+            resultContainer.style.display = 'none';
+        }
+
+        function checkAnswer() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            const correctAnswer = questions[currentQuestion].correct;
+
+            if (selectedOption) {
+                const answer = parseInt(selectedOption.value);
+                if (answer === correctAnswer) {
+                    score++;
+                }
+                userAnswers.push({
+                    question: questions[currentQuestion].question,
+                    selected: answer,
+                    correct: correctAnswer
+                });
+                currentQuestion++;
+            } else {
+                alert("Please select an option!");
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < questions.length) {
+                checkAnswer();
+                if (currentQuestion < questions.length) {
+                    loadQuestion();
+                } else {
+                    quizContainer.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                    exitBtn.style.display = 'block'; // Ensure exit button appears after submit button
+                }
+            }
+        });
+
+        submitBtn.addEventListener('click', () => {
+            const username = usernameInput.value;
+            if (!username) {
+                alert("Please enter your name.");
+                return;
+            }
+            displaySummary();
+
+            const quizData = {
+                username: username,
+                score: score
+            };
+
+            fetch('/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(quizData),
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displaySummary() {
+            let summaryHtml = `<h2>Your final score: ${score} out of ${questions.length}</h2>`;
+            summaryHtml += `<h3>Question Summary:</h3><ul>`;
+            userAnswers.forEach((answer, index) => {
+                const isCorrect = answer.selected === answer.correct;
+                summaryHtml += `<li><strong>Q${index + 1}:</strong> ${answer.question}<br>
+                                <span class="${isCorrect ? 'correct' : 'incorrect'}">Your Answer: ${questions[index].options[answer.selected] || "No answer"}</span><br>
+                                <span class="correct">Correct Answer: ${questions[index].options[answer.correct]}</span></li><br>`;
+            });
+            summaryHtml += `</ul>`;
+
+            summaryContainer.innerHTML = summaryHtml;
+            summaryContainer.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+
+        function exitQuiz() {
+            // Hide all quiz content and input fields
+            usernameInput.style.display = 'none';
+            quizContainer.style.display = 'none';
+            questionInfo.style.display = 'none';
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'none';
+            resultContainer.style.display = 'none';
+            summaryContainer.style.display = 'none';
+
+            // Show exit message only
+            exitMessage.innerHTML = "Exit successful! Thank you for participating.";
+            exitMessage.style.color = "green";
+            exitMessage.style.display = 'block';
+
+            exitBtn.style.display = 'none';
+        }
+
+        exitBtn.addEventListener('click', exitQuiz);
+
+        loadQuestion();
+    </script>
+</body>
+</html>
